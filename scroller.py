@@ -1,19 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-#from newsapi import NewsApiClient
-
 
 def Scraping_NIKKEI():
 
     url = "https://www.nikkei.com/markets/ranking/page/?bd=disclose" # 日本経済新聞 適宜開示ランキング
-
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
     table = soup.find('table') # rank_table
-    thead = table.find('thead')  
     tbody = table.find('tbody') 
 
+    #remove 'unnecessary' tag
     for target in tbody.find_all('div'):
         target.decompose()
 
@@ -23,57 +20,46 @@ def Scraping_NIKKEI():
     for target in tbody.find_all('h6'):
         target.decompose()
 
-    ths = thead.tr.find_all('th')
     trs = tbody.find_all('tr') 
 
     result = []
-    temp = []  
+    tempHead = [ 'rank', 'code', 'company', 'announcedDate', 'announcedTime', 'section', 'contents' ]
+    tempBody = []
 
-    for th in ths:  # thead -> trからthタグを探す
-        t = th.text
-        temp.append(t.strip())  # thタグのテキストを保存
-
-    result.append(temp) 
-
+    # tbody -> trからtrタグを探す
     for tr in trs:
-        temp = []
-        for td in tr.find_all('td'):  # trタグからtdタグを探す
+        tempBody = []
+
+        for td in tr.find_all('td'): 
             t = td.text
-            temp.append(t.strip())  # tdタグのテキストを保存
+            tempBody.append(t.strip())
+        
+        tempBody.pop(0)
+        result.append(tempBody)
 
-        result.append(temp)
-
-    #return result
-
-    # 出力
-    for temp in result:
-        print(','.join(temp))  # カンマ（,）で列を結合して表示
+    df_NIKKEI = pd.DataFrame( result, columns  = tempHead )    
+    #print(df_NIKKEI[[ 'rank', 'code', 'company', 'announcedDate', 'announcedTime', 'section', 'contents' ]])
 
 
 def NewsAPI():
     #key = '0a2e80170ef3498a92c1bc275a6820b5'
-    
-
-    
     headers = {'X-Api-Key': '0a2e80170ef3498a92c1bc275a6820b5'}
-
     url = 'https://newsapi.org/v2/top-headlines' #NewsAPI top-headlines
     params = {
         'category': 'business',
         'country': 'jp'
     }
 
-
     response = requests.get(url, headers=headers, params=params)
-
 
     if response.ok:
         data = response.json()
-        df = pd.DataFrame(data['articles'])
-        print('totalResults:', data['totalResults'])
+        df_NewsAPI = pd.DataFrame(data['articles'])
 
-    print(df[[ 'publishedAt', 'title', 'url']])
-    
+    #print(df_NewsAPI[[ 'publishedAt', 'title', 'url']])
+
+
+
 
 NewsAPI()  #get news from NewsAPI
 Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
