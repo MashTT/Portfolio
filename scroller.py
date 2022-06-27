@@ -1,9 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
+#from newsapi import NewsApiClient
+
 
 def Scraping_NIKKEI():
 
-    url = "https://www.nikkei.com/markets/ranking/page/?bd=disclose" # “ú–{ŒoÏV•· “K‹XŠJ¦ƒ‰ƒ“ƒLƒ“ƒO
+    url = "https://www.nikkei.com/markets/ranking/page/?bd=disclose" # æ—¥æœ¬çµŒæ¸ˆæ–°è é©å®œé–‹ç¤ºãƒ©ãƒ³ã‚­ãƒ³ã‚°
 
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
@@ -26,25 +29,52 @@ def Scraping_NIKKEI():
     result = []
     temp = []  
 
-    for th in ths:  # thead -> tr‚©‚çthƒ^ƒO‚ğ’T‚·
+    for th in ths:  # thead -> trã‹ã‚‰thã‚¿ã‚°ã‚’æ¢ã™
         t = th.text
-        temp.append(t.strip())  # thƒ^ƒO‚ÌƒeƒLƒXƒg‚ğ•Û‘¶
+        temp.append(t.strip())  # thã‚¿ã‚°ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’ä¿å­˜
 
     result.append(temp) 
 
     for tr in trs:
         temp = []
-        for td in tr.find_all('td'):  # trƒ^ƒO‚©‚çtdƒ^ƒO‚ğ’T‚·
+        for td in tr.find_all('td'):  # trã‚¿ã‚°ã‹ã‚‰tdã‚¿ã‚°ã‚’æ¢ã™
             t = td.text
-            temp.append(t.strip())  # tdƒ^ƒO‚ÌƒeƒLƒXƒg‚ğ•Û‘¶
+            temp.append(t.strip())  # tdã‚¿ã‚°ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’ä¿å­˜
 
-    result.append(temp)
+        result.append(temp)
 
-    return result
+    #return result
 
-    # o—Í
+    # å‡ºåŠ›
     for temp in result:
-        print(','.join(temp))  # ƒJƒ“ƒ}i,j‚Å—ñ‚ğŒ‹‡‚µ‚Ä•\¦
+        print(','.join(temp))  # ã‚«ãƒ³ãƒï¼ˆ,ï¼‰ã§åˆ—ã‚’çµåˆã—ã¦è¡¨ç¤º
 
 
-def Scraping_NIKKEI():
+def NewsAPI():
+    #key = '0a2e80170ef3498a92c1bc275a6820b5'
+    
+
+    
+    headers = {'X-Api-Key': '0a2e80170ef3498a92c1bc275a6820b5'}
+
+    url = 'https://newsapi.org/v2/top-headlines' #NewsAPI top-headlines
+    params = {
+        'category': 'business',
+        'country': 'jp'
+    }
+
+
+    response = requests.get(url, headers=headers, params=params)
+
+
+    if response.ok:
+        data = response.json()
+        df = pd.DataFrame(data['articles'])
+        print('totalResults:', data['totalResults'])
+
+    print(df[[ 'publishedAt', 'title', 'url']])
+    
+
+NewsAPI()  #get news from NewsAPI
+Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
+
