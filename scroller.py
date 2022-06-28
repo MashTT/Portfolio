@@ -38,6 +38,12 @@ def Scraping_NIKKEI():
         result.append(tempBody)
 
     df_NIKKEI = pd.DataFrame( result, columns  = tempHead )    
+
+    # for r,code,com,ad,at,sec,c in zip(df_NIKKEI['rank'], df_NIKKEI['code'], df_NIKKEI['company'], df_NIKKEI['announcedDate'], df_NIKKEI['announcedTime'], df_NIKKEI['section'], df_NIKKEI['contents']):
+    #     name = r + code
+    #     print(name)
+    return df_NIKKEI
+
     #print(df_NIKKEI[[ 'rank', 'code', 'company', 'announcedDate', 'announcedTime', 'section', 'contents' ]])
 
 
@@ -55,12 +61,16 @@ def NewsAPI():
     if response.ok:
         data = response.json()
         df_NewsAPI = pd.DataFrame(data['articles'])
+    
+    # print(df_NewsAPI[[ 'publishedAt', 'title', 'url' ]])
+    return df_NewsAPI
+    
+    
+    
 
-    #print(df_NewsAPI[[ 'publishedAt', 'title', 'url']])
 
 
 
-
-NewsAPI()  #get news from NewsAPI
-Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
+#NewsAPI()  #get news from NewsAPI
+#Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
 
