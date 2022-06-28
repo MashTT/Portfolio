@@ -1,7 +1,29 @@
-BoxLayout:
-    Label:
-        text: "Good Morning"
-    Label:
-        text: "Hello"
-    Label:
-        text: "Good Evening"
+#:kivy 2.1.0
+
+<Player>:
+    size: 100, 100
+    canvas:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'player.png'
+
+<Shot>:
+    size: 10, 30
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<ShootingGame>:
+    player: player
+
+    canvas:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'background.jpg'
+
+    Player:
+        id: player
+        pos: root.center_x - self.width/2, 0
