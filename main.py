@@ -1,17 +1,16 @@
-""" from tkinter import mainloop
-import wx
+import kivy
+from kivy.app import App
+from kivy.uix.label import Label
+#import scroller
+from kivy.lang import Builder
+Builder.load_file('layout.kv')
 
-app = wx.App()
+class MainScreen(App):
+    pass
 
-frame = wx.Frame(parent=None,id=-1,title='mainWindow',size=(400,400))
-
-frame.Show
-app.SetTopWindow(frame)
-app.MainLoop()
-
-def addtime():
-     """
-
-import scroller
-
-scroller.Scraping_NIKKEI()
+    #def build(self):
+        #str = scroller.NewsAPI
+        #return Label( text = str )
+        
+if __name__ == '__main__':
+    MainScreen().run()
