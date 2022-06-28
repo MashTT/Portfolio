@@ -1,87 +1,50 @@
-from kivy.app import App
-from kivy.clock import Clock
-from kivy.properties import (
-    ListProperty,
-    NumericProperty,
-    ObjectProperty,
-    ReferenceListProperty,
-)
-from kivy.uix.widget import Widget
-from kivy.vector import Vector
-
-
-from kivy.uix.screenmanager import Screen
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.core.window import Window
-from kivy.uix.widget import Widget
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.popup import Popup
-from kivy.uix.treeview import TreeView, TreeViewLabel, TreeViewNode
-from kivy.uix.label import Label
-from kivy.properties import ObjectProperty
-from kivy.core.text import LabelBase, DEFAULT_FONT
-from kivy.resources import resource_add_path
-
-    
-    
-
-class Player(Widget):
-    """プレイヤー"""
-
-    pass
-
+import sys
+from PyQt6.QtWidgets import (QApplication, QWidget, 
+                             QPushButton, QCheckBox, 
+                             QSlider, QLineEdit, 
+                             QCalendarWidget, QProgressBar)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
  
-class Shot(Widget):
-    """プレイヤーの弾"""
+class MainWindow(QWidget):
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+        self.initUI()
 
-    velocity_x = NumericProperty(0)
-    velocity_y = NumericProperty(10)
-    velocity = ReferenceListProperty(velocity_x, velocity_y)
+    def initUI(self):
+        self.setGeometry(400, 300, 600, 800) #self.move(400, 300), self.resize(400, 500)と一緒
+        self.setWindowTitle('Main Window')
 
-    def move(self):
-        """弾の移動処理"""
+        # ボタン
+        btn = QPushButton('更新', self)
+        btn.move(100, 50)
+        btn.resize(btn.sizeHint()) # sizeHintでいいかんじの大きさにしてくれる
+        btn.clicked.connect(self.refresh_news)
+        
+        # チェックボックス
+        cb = QCheckBox('Check Box', self)
+        cb.move(100, 100)
+ 
+        # テキストボックス
+        qle = QLineEdit(self)
+        qle.setGeometry(100, 200, 200, 20)
 
-        self.pos = Vector(*self.velocity) + self.pos
+        # プログレスバー
+        pbar = QProgressBar(self)
+        pbar.setGeometry(100, 250, 200, 25)
 
+        # カレンダー
+        cal = QCalendarWidget(self)
+        cal.move(100, 300)
+    
+    
+    def refresh_news(self):
+        print('pushed test1')
 
-class ShootingGame(Widget):
-    """ルートウィジェット。シューティングゲーム全体の管理"""
-
-    player = ObjectProperty(None)
-    shots = ListProperty()
-
-    def on_touch_move(self, touch):
-        """タッチしたまま移動でプレイヤー移動"""
-
-        if 0 < touch.x < self.width:
-            self.player.center_x = touch.x
-
-    def on_touch_down(self, touch):
-        """画面タッチで弾発射"""
-
-        shot = Shot(pos=self.player.center)
-        self.shots.append(shot)
-        self.add_widget(shot)
-
-    def update(self, dt):
-        """1/60秒毎に呼ばれる、ゲーム更新処理
-
-        各ショットの移動処理や、敵キャラの移動、それぞれの衝突判定を行う
-        """
-
-        for ball in self.shots:
-            ball.move()
-            if (ball.y < self.y) or (ball.top > self.top):
-                self.remove_widget(ball)
-                self.shots.remove(ball)
-
-
-class ShootingApp(App):
-
-    def build(self):
-        game = ShootingGame()
-        Clock.schedule_interval(game.update, 1.0 / 60.0)
-        return game
-
-ShootingApp().run()
+    
+    
+if __name__ == '__main__':
+    app = QApplication(sys.argv) #PyQtで必ず呼び出す必要のあるオブジェクト
+    main_window = MainWindow() #ウィンドウクラスのオブジェクト生成
+    main_window.show() #ウィンドウの表示
+    app.exec() #プログラム終了
