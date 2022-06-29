@@ -1,13 +1,12 @@
 import sys
 import pandas as pd
-from PyQt6.QtWidgets import (QApplication, QWidget, 
-                             QPushButton, QCheckBox, 
-                             QSlider, QLineEdit, 
-                             QCalendarWidget, QProgressBar,
-                             QVBoxLayout,QGridLayout,QLabel)
-from PyQt6.QtCore import Qt , pyqtSignal
-from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QCheckBox, 
+                             QSlider, QLineEdit, QCalendarWidget, QProgressBar,
+                             QVBoxLayout, QHBoxLayout, QGridLayout, QLabel)
+from PyQt6.QtCore import (Qt , pyqtSignal, QTimer)
+from PyQt6.QtGui import (QIcon, QFont)
 import scroller
+import datetime as dt
  
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
@@ -24,90 +23,96 @@ class MainWindow(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(400, 300, 600, 800) #self.move(400, 300), self.resize(400, 500)と一緒
+        #self.setGeometry(400, 300, 600, 800) 
         self.setWindowTitle('Main Window')
         
-        layout = QGridLayout(self)
-        #layout.setSpacing(20)
-
-        # ボタン
-        # btn = QPushButton('更新', self)
-        # btn.move(100, 50)
-        # btn.resize(btn.sizeHint()) # sizeHintでいいかんじの大きさにしてくれる
-        # btn.clicked.connect(self.refresh_news)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(300000) # 5 minites => 300000
         
-        # # チェックボックス
-        # cb = QCheckBox('Check Box', self)
-        # cb.move(100, 100)
- 
-        # # テキストボックス
-        # qle = QLineEdit(self)
-        # qle.setGeometry(100, 200, 200, 20)
-
-        # カレンダー
+        mainLayout = QGridLayout(self)
+        newsfeedLayout = QVBoxLayout(self)
+        otherLayout =  QVBoxLayout(self)
+        
+        # clndr
         cal = QCalendarWidget(self)
-        #vbox.addWidget(cal,1,1)
+        
+        # clock
+        clock = QLabel(self, objectName='label_clock')
+        clock.setText(str(dt.datetime.now()))
+        clock.move(50,20)
+        
         
         #nikkei
         vbox_NIKKEI = QVBoxLayout(self)
         vbox_NIKKEI.setContentsMargins(0,0,0,0)
         df = scroller.Scraping_NIKKEI()
-        css = '''
-            border: 1px solid white;
+        css_title = '''
             text-align: left;
             padding: 0px;
-            margin: 0px
+            margin-top: 5px 0px 0px 0px;
+            font-size: 18pt;
+            '''
+        
+        css_label = '''
+            text-align: left;
+            padding: 0px;
+            margin: 0px;
             '''
             
         titlelabel_NIKKEI = ClickableLabel(self, objectName='label_NIKKEI')
-        titlelabel_NIKKEI.setStyleSheet(css)
+        titlelabel_NIKKEI.setStyleSheet(css_title)
         titlelabel_NIKKEI.setText('日経経済新聞　適時開示ランキング')
+        titlelabel_NIKKEI.setFont(QFont('Times', 14))
         vbox_NIKKEI.addWidget(titlelabel_NIKKEI)
+        vbox_NIKKEI.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         for r,code,com,ad,at,sec,c in zip(df['rank'], df['code'], df['company'], df['announcedDate'], df['announcedTime'], df['section'], df['contents']):
-            name = r + '. ' + ad + ' ' + at + '  ' + code + ':' + com + c
+            name = ad + ' ' + at + '     ' + code + ':' + com + c
             label = ClickableLabel(self, objectName='label_NIKKEI' + r)
-            
-            label.setStyleSheet(css)
+            label.setStyleSheet(css_label)
             label.setText(name)
+            label.setMaximumWidth(800)
             label.clicked.connect(self.clicked)
             vbox_NIKKEI.addWidget(label)
-        
         
         #news
         vbox_NewsAPI = QVBoxLayout(self)
         vbox_NewsAPI.setContentsMargins(0,0,0,0)
         
         df = scroller.NewsAPI()
-        css = '''
-            border: 1px solid white;
-            text-align: left;
-            padding: 0px;
-            margin: 0px
-            '''
         
         titlelabel_NewsAPI = ClickableLabel(self, objectName='label_NewsAPI')
-        titlelabel_NewsAPI.setStyleSheet(css)
+        titlelabel_NewsAPI.setStyleSheet(css_title)
         titlelabel_NewsAPI.setText('ビジネスニュース一覧')
         vbox_NewsAPI.addWidget(titlelabel_NewsAPI)
-        
+        vbox_NewsAPI.setAlignment(Qt.AlignmentFlag.AlignTop)
         i = 0
 
         for p, t, u in zip(df['publishedAt'], df['title'], df['url']):
             i += 1
-            name = str(i) + '. ' + p + '   ' + t 
+            d = dt.datetime.strptime(p,'%Y-%m-%dT%H:%M:%SZ')
+            name = format(d, '%y/%m/%d %H:%M') + '     ' + t 
             label = ClickableLabel(self, objectName='label_NewsAPI' + str(i))
-            label.setStyleSheet(css)
+            label.setStyleSheet(css_label)
             label.setText(name)
+            label.setMaximumWidth(800)
             label.clicked.connect(self.clicked)
             vbox_NewsAPI.addWidget(label)
                 
+
                         
         #add all layouts
-        layout.addLayout(vbox_NIKKEI,0,0)
-        layout.addLayout(vbox_NewsAPI,1,0)
-        layout.addWidget(cal,0,1)
-
+        newsfeedLayout.addLayout(vbox_NIKKEI)
+        newsfeedLayout.addLayout(vbox_NewsAPI)
+        otherLayout.addWidget(cal)
+        otherLayout.addWidget(clock)
+        mainLayout.addLayout(newsfeedLayout,0,0)
+        mainLayout.addLayout(otherLayout,0,1)
+    
+    
+    def refresh_newsfeed(df, title):
+        print('a')
 
 
     def clicked(self):
@@ -118,11 +123,15 @@ class MainWindow(QWidget):
     
     def refresh_news(self):
         print('pushed test1')
+    
+        
+    def update(self):
+        print("timer test")
 
     
     
 if __name__ == '__main__':
-    app = QApplication(sys.argv) #PyQtで必ず呼び出す必要のあるオブジェクト
-    main_window = MainWindow() #ウィンドウクラスのオブジェクト生成
+    app = QApplication(sys.argv) 
+    main_window = MainWindow() 
     main_window.show() 
     app.exec() 

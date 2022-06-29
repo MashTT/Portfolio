@@ -9,16 +9,13 @@ def Scraping_NIKKEI():
     soup = BeautifulSoup(r.content, "html.parser")
     table = soup.find('table') # rank_table
     tbody = table.find('tbody') 
-
+    delete_tag = ['div', 'p', 'h6']
+    
     #remove 'unnecessary' tag
-    for target in tbody.find_all('div'):
-        target.decompose()
-
-    for target in tbody.find_all('p'):
-        target.decompose()
-
-    for target in tbody.find_all('h6'):
-        target.decompose()
+    for tag in delete_tag:
+        for target in tbody.find_all(tag):
+            target.decompose()
+            
 
     trs = tbody.find_all('tr') 
 
@@ -26,7 +23,7 @@ def Scraping_NIKKEI():
     tempHead = [ 'rank', 'code', 'company', 'announcedDate', 'announcedTime', 'section', 'contents' ]
     tempBody = []
 
-    # tbody -> trからtrタグを探す
+    # tbody -> tr 
     for tr in trs:
         tempBody = []
 
@@ -37,14 +34,12 @@ def Scraping_NIKKEI():
         tempBody.pop(0)
         result.append(tempBody)
 
-    df_NIKKEI = pd.DataFrame( result, columns  = tempHead )    
-
-    # for r,code,com,ad,at,sec,c in zip(df_NIKKEI['rank'], df_NIKKEI['code'], df_NIKKEI['company'], df_NIKKEI['announcedDate'], df_NIKKEI['announcedTime'], df_NIKKEI['section'], df_NIKKEI['contents']):
-    #     name = r + code
-    #     print(name)
-    return df_NIKKEI
+    df_NIKKEI = pd.DataFrame( result, columns = tempHead )    
 
     #print(df_NIKKEI[[ 'rank', 'code', 'company', 'announcedDate', 'announcedTime', 'section', 'contents' ]])
+    return df_NIKKEI
+
+
 
 
 def NewsAPI():
@@ -61,16 +56,18 @@ def NewsAPI():
     if response.ok:
         data = response.json()
         df_NewsAPI = pd.DataFrame(data['articles'])
+    else:
+        df_NewsAPI = pd.DataFrame({ 'publishedAt' : '',
+                                    'title' : '取得できませんでした。',
+                                    'url' : ''
+                                    })
+
     
     # print(df_NewsAPI[[ 'publishedAt', 'title', 'url' ]])
     return df_NewsAPI
     
     
     
-
-
-
-
 #NewsAPI()  #get news from NewsAPI
-#Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
+Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
 
