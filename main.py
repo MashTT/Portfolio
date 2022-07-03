@@ -1,24 +1,14 @@
+# -*- coding: utf-8 -*-
+
 import sys
-from turtle import right
-import pandas as pd
-from PyQt6.QtWidgets import (QApplication, QVBoxLayout, QHBoxLayout, QGridLayout, 
-                                                 QWidget, QCalendarWidget, QPushButton, QCheckBox, QSlider, QLineEdit, QLabel)
-from PyQt6.QtCore import (Qt, pyqtSignal, QTimer, QTime)
-from PyQt6.QtGui import (QIcon, QFont)
+from PyQt6.QtWidgets import (QApplication, QVBoxLayout,  QGridLayout, 
+                                                 QWidget, QCalendarWidget,  QLabel)
+from PyQt6.QtCore import (Qt,  QTimer, QTime, QEvent)
 import scroller
 import datetime as dt
 import webbrowser
 import re
- 
- 
-class ClickableLabel(QLabel):
-    clicked = pyqtSignal()
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.clicked.emit()
-
- 
  
 class MainWindow(QWidget):
     def __init__(self, parent=None):
@@ -27,38 +17,35 @@ class MainWindow(QWidget):
 
     def initUI(self):
         self.setWindowTitle('Main Window')
-        #self.setFixedSize(1300,900)
-        
-        #for newsfeed
-        # self.timer = QTimer(self)
-        # self.timer.timeout.connect(self.update)
-        # self.timer.start(60000) # 1 minites => 60000
-        
-        # for clock
-        self.timer2 = QTimer(self)
-        self.timer2.timeout.connect(self.clock_time)
-        self.timer2.start(1000)
+        self.setFixedSize(1300,850)
 
         mainLayout = QGridLayout(self)
         newsfeedLayout = QVBoxLayout(self)
         otherLayout =  QVBoxLayout(self)
-
 
         # clndr
         vbox_cal = QVBoxLayout(self)
         cal = QCalendarWidget(self)
         cal.setFixedSize(500,400)
         vbox_cal.addWidget(cal)
-
-
-        # clock
-        self.clock = QLabel(self, objectName='label_clock')
-        self.clock .setText(format(dt.datetime.now(),'%H:%M:%S'))
-
         
+        # clock
+        sTime = format(dt.datetime.now(),'%H:%M:%S')
+        self.clock = QLabel(self, objectName='label_clock')
+        self.clock .setText(sTime)
+
+        # for clock refresh
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.clock_time)
+        self.timer.start(1000)
+
+        #for newsfeed refresh
+        self.timer2 = QTimer(self)
+        self.timer2.timeout.connect(self.update_news)
+        self.timer2.start(60000) # 1 minites => 60000
+
         #nikkei
         vbox_NIKKEI = QVBoxLayout(self)
-        vbox_NIKKEI.setContentsMargins(0,0,0,0)
         self.df_NIKKEI = scroller.ScrapingNIKKEI()
         css_title = '''
             text-align: left;
@@ -75,94 +62,101 @@ class MainWindow(QWidget):
             margin: 0px;
             '''
             
-        titlelabel_NIKKEI = ClickableLabel(self, objectName='title_NIKKEI')
+        titlelabel_NIKKEI = QLabel(self)
         titlelabel_NIKKEI.setStyleSheet(css_title)
         titlelabel_NIKKEI.setText('日経経済新聞　適時開示ランキング')
         vbox_NIKKEI.addWidget(titlelabel_NIKKEI)
-        vbox_NIKKEI.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         for r,code,com,ad,at,sec,c in zip(self.df_NIKKEI['rank'], self.df_NIKKEI['code'], self.df_NIKKEI['company'], self.df_NIKKEI['announcedDate'], self.df_NIKKEI['announcedTime'], self.df_NIKKEI['section'], self.df_NIKKEI['contents']):
-            name = ad + ' ' + at + '     ' + code + ':' + com + c
-            label = ClickableLabel(self, objectName='NIKKEI_label_' + r)
-            label.setStyleSheet(css_label)
-            label.setText(name)
-            label.setMaximumWidth(800)
-            label.clicked.connect(self.clicked)
-            vbox_NIKKEI.addWidget(label)
+            d = dt.datetime.strptime(ad + ' ' + at,'%y/%m/%d %H:%M')
+            name = format(d, '%y/%m/%d %H:%M')   + '     ' + code + ':' + com + c
+
+            nikkei_label = QLabel(self)
+            nikkei_label.setObjectName('NIKKEI_label_' + str(r))
+            nikkei_label.setStyleSheet(css_label)
+            nikkei_label.setText(name)
+            nikkei_label.setMaximumWidth(800)
+            nikkei_label.installEventFilter(self)
+            vbox_NIKKEI.addWidget(nikkei_label)
         
 
         #news
-        vbox_NewsAPI = QVBoxLayout(self)
-        vbox_NewsAPI.setContentsMargins(0,0,0,0)
-        
+        self.vbox_NewsAPI = QVBoxLayout(self)        
         self.df_NewsAPI = scroller.NewsAPI()
-        
-        titlelabel_NewsAPI = ClickableLabel(self, objectName='title_NewsAPI')
+
+        titlelabel_NewsAPI = QLabel(self)
         titlelabel_NewsAPI.setStyleSheet(css_title)
         titlelabel_NewsAPI.setText('ビジネスニュース一覧')
-        vbox_NewsAPI.addWidget(titlelabel_NewsAPI)
-        vbox_NewsAPI.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.vbox_NewsAPI.addWidget(titlelabel_NewsAPI)
         i = 0
 
-        for p, t, u in zip(self.df_NewsAPI['publishedAt'], self.df_NewsAPI['title'], self.df_NewsAPI['url']):
+        for p, t, u in zip(self.df_NewsAPI['publishedAt'], self.df_NewsAPI['title'], self.df_NewsAPI['url']):           
             i += 1
             d = dt.datetime.strptime(p,'%Y-%m-%dT%H:%M:%SZ')
             name = format(d, '%y/%m/%d %H:%M') + '     ' + t 
-
-            label = ClickableLabel(self, objectName='NewsAPI_label_' + str(i))
-            label.setStyleSheet(css_label)
-            label.setText(name)
-            label.setMaximumWidth(800)
-            label.clicked.connect(self.clicked)
-            vbox_NewsAPI.addWidget(label)
-                
-
+            
+            news_label = QLabel(self)
+            news_label.setObjectName('NewsAPI_label_' + str(i))
+            news_label.setStyleSheet(css_label)
+            news_label.setText(name)
+            news_label.setMaximumWidth(800)
+            news_label.installEventFilter(self)
+            self.vbox_NewsAPI.addWidget(news_label)
                         
         #add all layouts
         newsfeedLayout.addLayout(vbox_NIKKEI)
-        newsfeedLayout.addLayout(vbox_NewsAPI)
+        newsfeedLayout.addLayout(self.vbox_NewsAPI)
         otherLayout.addLayout(vbox_cal)
-        otherLayout.addWidget(self.clock)
+        otherLayout.addWidget(self.clock, Qt.AlignmentFlag.AlignBottom)
         mainLayout.addLayout(newsfeedLayout,0,0)
         mainLayout.addLayout(otherLayout,0,1)
-    
-    
-    def refresh_newsfeed(df, title):
-        print('a')
-
-
-    def clicked(self):
-        label = self.sender()
-        name = label.objectName()
-        num = int(re.sub(r"\D", "", name)) - 1
-        if num < 0:
-            return
-
-        elif 'NewsAPI' in name:
-            d = self.df_NewsAPI.loc[[num], 'url']
-            url = d.iloc[-1]
-            webbrowser.open(url) 
-
-        elif 'NIKKEI' in name:
-            d = self.df_NIKKEI.loc[[num], 'code']
-            url = 'https://www.buffett-code.com/company/' + str(d.iloc[-1]) + '/'
-            webbrowser.open(url) 
-
-    
-    def refresh_news(self):
-        print('pushed test1')
-    
         
-    def update(self):
-        print("timer test")
 
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.Type.MouseButtonPress:
+            if event.button() == Qt.MouseButton.LeftButton:
+                name = object.objectName()
+                num = int(re.sub(r"\D", "", name)) - 1
+                if num < 0:
+                    return True
+                elif 'NewsAPI' in name:
+                    d = self.df_NewsAPI.loc[[num], 'url']
+                    url = d.iloc[-1]
+                    webbrowser.open(url) 
+                    return True
+                elif 'NIKKEI' in name:
+                    d = self.df_NIKKEI.loc[[num], 'code']
+                    url = 'https://www.buffett-code.com/company/' + str(d.iloc[-1]) + '/'
+                    webbrowser.open(url) 
+                    return True
+            return False
+        return False
+        
+
+    def update_news(self):
+
+        targetList = self.findChildren(QLabel)
+        self.df_NewsAPI = scroller.NewsAPI()
+        i = 0
+
+        for p, t in zip(self.df_NewsAPI['publishedAt'], self.df_NewsAPI['title']):           
+            i += 1 
+            d = dt.datetime.strptime(p,'%Y-%m-%dT%H:%M:%SZ')
+            newStr = format(d, '%y/%m/%d %H:%M') + '     ' + t 
+            labelName = 'NewsAPI_label_' + str(i)
+            for target in targetList:
+                if target.objectName() == labelName:
+                    target.setText(newStr)
+                    break
+                    
 
     def clock_time(self):
         current_time = QTime.currentTime()
         label_time = current_time.toString('hh:mm:ss')
 
         if label_time[-2] == '5':
-            css_clock = '''
+            css_clock = '''                
                 color: "#FF0000";
                 font-size: 128px;
                 font-family: Time;
@@ -181,7 +175,6 @@ class MainWindow(QWidget):
         self.clock.setText(label_time)
         self.clock.setStyleSheet(css_clock)
 
-    
     
 if __name__ == '__main__':
     app = QApplication(sys.argv) 

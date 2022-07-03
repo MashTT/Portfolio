@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-def Scraping_NIKKEI():
+def ScrapingNIKKEI():
 
     url = "https://www.nikkei.com/markets/ranking/page/?bd=disclose" # 日本経済新聞 適宜開示ランキング
     r = requests.get(url)
@@ -69,5 +69,5 @@ def NewsAPI():
     
     
 #NewsAPI()  #get news from NewsAPI
-Scraping_NIKKEI() #get Viewing ranking of Timely disclosure 
+#ScrapingNIKKEI() #get Viewing ranking of Timely disclosure 
 
