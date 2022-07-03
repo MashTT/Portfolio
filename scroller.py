@@ -1,6 +1,8 @@
-import requests
+# -*- coding: utf-8 -*-
+
 from bs4 import BeautifulSoup
 import pandas as pd
+import requests
 
 def ScrapingNIKKEI():
 
@@ -35,11 +37,7 @@ def ScrapingNIKKEI():
         result.append(tempBody)
 
     df_NIKKEI = pd.DataFrame( result, columns = tempHead )    
-
-    #print(df_NIKKEI[[ 'rank', 'code', 'company', 'announcedDate', 'announcedTime', 'section', 'contents' ]])
     return df_NIKKEI
-
-
 
 
 def NewsAPI():
@@ -62,12 +60,4 @@ def NewsAPI():
                                     'url' : ''
                                     })
 
-    
-    # print(df_NewsAPI[[ 'publishedAt', 'title', 'url' ]])
     return df_NewsAPI
-    
-    
-    
-#NewsAPI()  #get news from NewsAPI
-#ScrapingNIKKEI() #get Viewing ranking of Timely disclosure 
-

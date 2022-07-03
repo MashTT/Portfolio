@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import sys
+import datetime as dt
 from PyQt6.QtWidgets import (QApplication, QVBoxLayout,  QGridLayout, 
                                                  QWidget, QCalendarWidget,  QLabel)
 from PyQt6.QtCore import (Qt,  QTimer, QTime, QEvent)
-import scroller
-import datetime as dt
-import webbrowser
 import re
+import scroller
+import sys
+import webbrowser
 
  
 class MainWindow(QWidget):
