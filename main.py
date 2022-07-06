@@ -15,10 +15,10 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__(parent)
         self.initUI()
 
+
     def initUI(self):
         self.setWindowTitle('Main Window')
         self.setFixedSize(1300,850)
-
         mainLayout = QGridLayout(self)
         newsfeedLayout = QVBoxLayout(self)
         otherLayout =  QVBoxLayout(self)
@@ -49,7 +49,6 @@ class MainWindow(QWidget):
         self.df_NIKKEI = scroller.ScrapingNIKKEI()
         css_title = '''
             text-align: left;
-            font-family: "メイリオ" ;
             padding: 0px;
             margin-top: 5px 0px 0px 0px;
             font-size: 18pt;
@@ -57,7 +56,6 @@ class MainWindow(QWidget):
         
         css_label = '''
             text-align: left;
-            font-family: "メイリオ" ;
             padding: 0px;
             margin: 0px;
             '''
@@ -79,15 +77,12 @@ class MainWindow(QWidget):
             nikkei_label.installEventFilter(self)
             vbox_NIKKEI.addWidget(nikkei_label)
         
-
         #news
         self.vbox_NewsAPI = QVBoxLayout(self)        
         self.df_NewsAPI = scroller.NewsAPI()
-
         titlelabel_NewsAPI = QLabel(self)
         titlelabel_NewsAPI.setStyleSheet(css_title)
         titlelabel_NewsAPI.setText('ビジネスニュース一覧')
-
         self.vbox_NewsAPI.addWidget(titlelabel_NewsAPI)
         i = 0
 
@@ -135,7 +130,6 @@ class MainWindow(QWidget):
         
 
     def update_news(self):
-
         targetList = self.findChildren(QLabel)
         self.df_NewsAPI = scroller.NewsAPI()
         i = 0
@@ -158,18 +152,16 @@ class MainWindow(QWidget):
         if label_time[-2] == '5':
             css_clock = '''                
                 color: "#FF0000";
-                font-size: 128px;
-                font-family: Time;
+                font-size: 118px;
                 font-weight: bold;
-                text-align: center;
+                text-align: right;
             '''
         else:
             css_clock = '''
                 color: "#008000";
-                font-size: 128px;
-                font-family: Time;
+                font-size: 118px;
                 font-weight: bold;
-                text-align: center;
+                text-align: right;
             '''
     
         self.clock.setText(label_time)

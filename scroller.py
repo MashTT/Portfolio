@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 
+
 def ScrapingNIKKEI():
 
     url = "https://www.nikkei.com/markets/ranking/page/?bd=disclose" # 日本経済新聞 適宜開示ランキング
@@ -37,6 +38,7 @@ def ScrapingNIKKEI():
         df_NIKKEI = pd.DataFrame( {'contents' : '取得出来ませんでした。' }, columns = tempHead )    
     
     return df_NIKKEI
+
 
 def NewsAPI():
     #key = '0a2e80170ef3498a92c1bc275a6820b5'
