@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #Timer
-CLOCK_REFRESH_INTERVAL = 1000
-NEWS_REFRESH_INTERVAL = 60000 #1min
+REFRESH_INTERVAL = 1000
 
 #Scrape Nikkei
 NIKKEI_URL = "https://www.nikkei.com/markets/ranking/page/?bd=disclose" # 日本経済新聞 適宜開示ランキング
