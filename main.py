@@ -85,7 +85,9 @@ class MainWindow(QWidget):
         self.mainLayout.addLayout(self.rightLayout, 0, 1)
 
         self.th1 = threading.Thread(target=self.update_time)
+        self.th1.daemon = True
         self.th2 = threading.Thread(target=self.update_news)
+        self.th2.daemon = True
         self.th1.start()
         self.th2.start()
 
@@ -139,3 +141,4 @@ if __name__ == '__main__':
     main_window = MainWindow()
     main_window.show()
     app.exec()
+    sys.exit()
